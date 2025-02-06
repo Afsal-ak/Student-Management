@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1, h2 {
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        form {
+            margin: 10px 0;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .update-form {
+            display: none; /* Initially hidden */
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-top: 10px;
+            background-color: #f9f9f9;
+        }
+
+        .error {
+            color: red;
+            font-size: 12px;
+        }
+    </style>
+    <script>
+        // Validation for the Add Student Form
+        function validateAddForm(event) {
+            const name = document.getElementById("add-name").value.trim();
+            const age = document.getElementById("add-age").value.trim();
+            const grade = document.getElementById("add-grade").value.trim();
+            const email = document.getElementById("add-email").value.trim();
+
+            let isValid = true;
+            const errors = [];
+
+            if (name === "") {
+                errors.push("Name is required.");
+                isValid = false;
+            }
+            if (age === "" || isNaN(age) || parseInt(age) <= 0) {
+                errors.push("Age must be a valid positive number.");
+                isValid = false;
+            }
+            if (grade === "") {
+                errors.push("Grade is required.");
+                isValid = false;
+            }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (email === "" || !emailRegex.test(email)) {
+                errors.push("Email must be a valid email address.");
+                isValid = false;
+            }
+
+            if (!isValid) {
+                event.preventDefault();
+                alert(errors.join("\n"));
+            }
+        }
+
+        // Toggle Update Form
+        function showUpdateForm(studentId) {
+            const form = document.getElementById(`update-form-${studentId}`);
+            form.style.display = form.style.display === "none" ? "block" : "none";
+        }
+
+        // Validation for Update Forms
+        function validateUpdateForm(event, formId) {
+            const form = document.getElementById(formId);
+            const name = form.querySelector("input[name='name']").value.trim();
+            const age = form.querySelector("input[name='age']").value.trim();
+            const grade = form.querySelector("input[name='grade']").value.trim();
+            const email = form.querySelector("input[name='email']").value.trim();
+
+            let isValid = true;
+            const errors = [];
+
+            if (name === "") {
+                errors.push("Name is required.");
+                isValid = false;
+            }
+            if (age === "" || isNaN(age) || parseInt(age) <= 0) {
+                errors.push("Age must be a valid positive number.");
+                isValid = false;
+            }
+            if (grade === "") {
+                errors.push("Grade is required.");
+                isValid = false;
+            }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (email === "" || !emailRegex.test(email)) {
+                errors.push("Email must be a valid email address.");
+                isValid = false;
+            }
+
+            if (!isValid) {
+                event.preventDefault();
+                alert(errors.join("\n"));
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Student Management</h1>
+
+    <!-- Form to Add a New Student -->
+    <h2>Add New Student</h2>
+    <form action="/students/add" method="POST" onsubmit="validateAddForm(event)">
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" id="add-name" name="name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="age">Age:</label>
+            <input type="number" id="add-age" name="age" required>
+        </div>
+
+        <div class="form-group">
+            <label for="grade">Grade:</label>
+            <input type="text" id="add-grade" name="grade" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="add-email" name="email" required>
+        </div>
+
+        <button type="submit">Add Student</button>
+    </form>
+
+    <hr>
+
+    <!-- List of Students with Update & Delete Options -->
+    <h2>Student List</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Grade</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% students.forEach(student => { %>
+            <tr>
+                <td><%= student.name %></td>
+                <td><%= student.age %></td>
+                <td><%= student.grade %></td>
+                <td><%= student.email %></td>
+                <td>
+                    <button onclick="showUpdateForm('<%= student._id %>')">Edit</button>
+                    <form action="/students/delete/<%= student._id %>" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure?');">
+                        <button type="submit" class="btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            <tr id="update-form-<%= student._id %>" class="update-form">
+                <td colspan="5">
+                    <h3>Update Student</h3>
+                    <form id="update-form-<%= student._id %>" action="/students/update/<%= student._id %>" method="POST" onsubmit="validateUpdateForm(event, 'update-form-<%= student._id %>')">
+                        <div class="form-group">
+                            <label for="name">Name:</label>
+                            <input type="text" name="name" value="<%= student.name %>" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="age">Age:</label>
+                            <input type="number" name="age" value="<%= student.age %>" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="grade">Grade:</label>
+                            <input type="text" name="grade" value="<%= student.grade %>" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+                            <input type="email" name="email" value="<%= student.email %>" required>
+                        </div>
+
+                        <button type="submit">Update</button>
+                    </form>
+                </td>
+            </tr>
+            <% }); %>
+        </tbody>
+    </table>
+</body>
+</html>
